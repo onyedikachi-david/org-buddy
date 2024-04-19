@@ -22,9 +22,24 @@ pub mod finance_solana {
         Ok(())
     }
 
-    pub fn update_budget(ctx: Context<UpdateBudget>, budget: u64) -> Result<()> {
-        // Implementation here
-        todo!()
+    pub fn update_budget(ctx: Context<UpdateBudget>, new_amount: u64) -> Result<()> {
+        let budget = &mut ctx.accounts.budget;
+        require!(*ctx.accounts.user.key == budget.owner, MyError::NotOwner);
+
+        // Optionally adjust the remaining amount if the logic requires
+        let amount_change = new_amount as i64 - budget.allocated_amount as i64;
+        budget.remaining_amount = (budget.remaining_amount as i64 + amount_change) as u64;
+
+        budget.allocated_amount = new_amount;
+
+        // Emit an event to notify about the budget update
+        emit!(BudgetUpdated {
+            owner: budget.owner,
+            allocated_amount: budget.allocated_amount,
+            remaining_amount: budget.remaining_amount,
+        });
+
+        Ok(())
     }
 
     pub fn get_balance(ctx: Context<GetBalance>) -> Result<()> {
@@ -101,11 +116,16 @@ pub struct CreateBudget<'info> {
     pub system_program: Program<'info, System>,
 }
 
+//#[account(mut, seeds = [b"user-stats", user.key().as_ref()], bump = user_stats.bump)]
+// pub user_stats: Account<'info, UserStats>,
 #[derive(Accounts)]
 pub struct UpdateBudget<'info> {
-    #[account(mut)]
+    #[account(mut, seeds = [b"budget", org.owner.key().as_ref()], bump)]
     pub budget: Account<'info, Budget>,
     pub user: Signer<'info>,
+    #[account(seeds = [b"organization", org.owner.key().as_ref()], bump)]
+    pub org: Account<'info, Organization>,
+    pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
@@ -205,14 +225,18 @@ pub struct CreateOrganization<'info> {
 }
 
 #[error_code]
-pub enum ErrorCode {
+pub enum MyError {
     #[msg("The budget account already exists.")]
     BudgetAlreadyExists,
+    #[msg("You are are not the owner of the PDA account")]
+    NotOwner,
 }
 
 #[event]
 pub struct BudgetUpdated {
-    // Define event structure here
+    owner: Pubkey,
+    allocated_amount: u64,
+    remaining_amount: u64,
 }
 
 // Define other events similarly
