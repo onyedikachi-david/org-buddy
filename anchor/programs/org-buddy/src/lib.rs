@@ -130,17 +130,78 @@ pub mod finance_solana {
 
     pub fn reject_payout(ctx: Context<RejectPayout>) -> Result<()> {
         let payout = &mut ctx.accounts.payout;
+        require!(
+            ctx.accounts.user.key() == ctx.accounts.org.key(),
+            MyError::Unauthorized
+        );
+        require!(
+            payout.status == PayoutStatus::Pending,
+            MyError::InvalidPayoutStatus
+        );
+
+        payout.status = PayoutStatus::Cancelled;
+        Ok(())
     }
 
-    pub fn execute_payout(ctx: Context<ExecutePayout>) -> Result<()> {
-        // Implementation here
-        todo!()
+    pub fn execute_payout<'a, 'b, 'c, 'info>(
+        ctx: Context<'a, 'b, 'c, 'info, ExecutePayout<'info>>,
+    ) -> Result<()> {
+        let payout = &mut ctx.accounts.payout;
+        let budget = &mut ctx.accounts.budget;
+        let org_admin = &ctx.accounts.org.key();
+        let user = &ctx.accounts.user.key();
+
+        let system_program = &ctx.accounts.system_program;
+
+        // Ensure that the executor is authorized to execute payouts
+        // This might involve checking if the executor is an admin or the budget owner, etc.
+        require!(user == org_admin, MyError::Unauthorized);
+
+        // Check if the payout is approved
+        require!(
+            payout.status == PayoutStatus::Approved,
+            MyError::InvalidPayoutStatus
+        );
+
+        // Ensure the budget has enough funds to cover the payout
+        require!(
+            budget.remaining_amount >= payout.amount * payout.recipient.len() as u64,
+            MyError::InsufficientFunds
+        );
+
+        // Transfer funds from the Budget PDA to each recipient
+        for recipient_key in &payout.recipient {
+            let recipient_info = ctx
+                .remaining_accounts
+                .iter()
+                .find(|a| a.key() == *recipient_key)
+                .unwrap()
+                .to_account_info();
+            let cpi_context = CpiContext::new(
+                system_program.to_account_info(),
+                system_program::Transfer {
+                    from: budget.to_account_info(),
+                    to: recipient_info,
+                },
+            );
+            system_program::transfer(cpi_context, payout.amount)?;
+        }
+
+        // Update the budget's remaining amount
+        budget.remaining_amount = budget
+            .remaining_amount
+            .checked_sub(payout.amount * payout.recipient.len() as u64)
+            .ok_or(MyError::MathError)?;
+
+        // Update the payout status to Completed
+        payout.status = PayoutStatus::Completed;
+
+        Ok(())
     }
 
-    pub fn get_pending_payouts(ctx: Context<GetPendingPayouts>) -> Result<()> {
-        // Implementation here
-        todo!()
-    }
+    // pub fn get_pending_payouts(ctx: Context<GetPendingPayouts>) -> Result<()> {
+    //     todo!()
+    // }
 
     pub fn create_organization(
         ctx: Context<CreateOrganization>,
@@ -263,16 +324,15 @@ pub struct RejectPayout<'info> {
 
 #[derive(Accounts)]
 pub struct ExecutePayout<'info> {
-    #[account(mut)]
-    pub payout: Account<'info, Payout>, // Assuming Payout is a defined account
-    pub executor: Signer<'info>,
-}
-
-#[derive(Accounts)]
-pub struct GetPendingPayouts<'info> {
+    #[account(mut, seeds = [b"payout", org.owner.key().as_ref()], bump)]
+    pub payout: Account<'info, Payout>,
+    #[account(mut, seeds = [b"budget", org.owner.key().as_ref()], bump)]
     pub budget: Account<'info, Budget>,
-    // You might not need to mutate any accounts for just getting pending payouts
-    // but if you do, add them here
+    #[account(seeds = [b"organization", org.owner.key().as_ref()], bump)]
+    pub org: Account<'info, Organization>,
+    #[account(mut)]
+    pub user: Signer<'info>,
+    pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
@@ -329,6 +389,8 @@ pub enum MyError {
     Unauthorized,
     #[msg("Invalid payout status")]
     InvalidPayoutStatus,
+    #[msg["A math error occurred"]]
+    MathError,
 }
 
 #[event]
