@@ -203,30 +203,62 @@ pub mod finance_solana {
     //     todo!()
     // }
 
-    pub fn create_organization(
-        ctx: Context<CreateOrganization>,
-        members: Vec<Member>,
-    ) -> Result<()> {
-        // Implementation here
-        todo!()
+    pub fn create_organization(ctx: Context<CreateOrganization>, name: String) -> Result<()> {
+        let organization = &mut ctx.accounts.organization;
+        let creator = &ctx.accounts.user;
+
+        organization.owner = *creator.key;
+        organization.name = name;
+        organization.members = vec![];
+
+        emit!(OrganizationCreated {
+            owner: organization.owner,
+            name: organization.name.clone(),
+        });
+
+        Ok(())
     }
 
-    pub fn add_member(ctx: Context<AddMember>, member: Member) -> Result<()> {
-        // Implementation here
-        todo!()
+    pub fn add_member(ctx: Context<AddMember>, member_pubkey: Pubkey) -> Result<()> {
+        let organization = &mut ctx.accounts.organization;
+        let user = &ctx.accounts.user;
+
+        // Ensure that the user is authorized to add members, typically the organization owner
+        require!(organization.owner == *user.key, MyError::Unauthorized);
+
+        // Optionally, check for duplicate members or other business rules
+        if organization
+            .members
+            .iter()
+            .any(|m| m.pubkey == member_pubkey)
+        {
+            return err!(MyError::MemberAlreadyExists);
+        }
+
+        // Add the new member to the organization
+        organization.members.push(Member {
+            pubkey: member_pubkey,
+            role: Role::Member, // Assuming a default role; adjust as necessary
+        });
+
+        // Optionally, emit an event here to log the addition of a new member
+        emit!(MemberAdded {
+            organization: organization.key(),
+            member: member_pubkey,
+        });
+
+        Ok(())
     }
 
     pub fn update_member_role(
         ctx: Context<UpdateMemberRole>,
-        member: Member,
+        member: Pubkey,
         role: Role,
     ) -> Result<()> {
-        // Implementation here
         todo!()
     }
 
-    pub fn remove_member(ctx: Context<RemoveMember>, member: Member) -> Result<()> {
-        // Implementation here
+    pub fn remove_member(ctx: Context<RemoveMember>, member: Pubkey) -> Result<()> {
         todo!()
     }
 }
@@ -337,10 +369,9 @@ pub struct ExecutePayout<'info> {
 
 #[derive(Accounts)]
 pub struct AddMember<'info> {
-    #[account(mut)]
+    #[account(mut, seeds = [b"organization", organization.owner.key().as_ref()], bump)]
     pub organization: Account<'info, Organization>,
-    #[account(init, payer = user, space = 8 + 32 + 8)]
-    // Adjust space according to Member struct fields
+    #[account(mut, seeds = [b"member", organization.name.as_bytes()], bump)]
     pub member: Account<'info, Member>,
     #[account(mut)]
     pub user: Signer<'info>,
@@ -349,29 +380,32 @@ pub struct AddMember<'info> {
 
 #[derive(Accounts)]
 pub struct UpdateMemberRole<'info> {
-    #[account(mut)]
+    #[account(mut, seeds = [b"organization", organization.owner.key().as_ref()], bump)]
     pub organization: Account<'info, Organization>,
-    #[account(mut)]
+    #[account(mut,seeds = [b"member", organization.name.as_bytes()], bump)]
     pub member: Account<'info, Member>,
     pub user: Signer<'info>,
+    pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
 pub struct RemoveMember<'info> {
-    #[account(mut)]
+    #[account(mut, seeds = [b"organization", organization.owner.key().as_ref()], bump)]
     pub organization: Account<'info, Organization>,
-    #[account(mut)]
+    #[account(mut, seeds = [b"member", organization.name.as_bytes()], bump)]
     pub member: Account<'info, Member>,
     pub user: Signer<'info>,
 }
 
 #[derive(Accounts)]
+#[instruction(name: String)]
 pub struct CreateOrganization<'info> {
-    #[account(init, payer = user, space = 8 + 32 + 8)]
-    // Adjust space according to Organization struct fields
+    #[account(init, payer = user, space = 8 + 32 + 8 + name.len(), seeds = [b"organization", user.key().as_ref()], bump)]
     pub organization: Account<'info, Organization>,
     #[account(mut)]
     pub user: Signer<'info>,
+    #[account(init, payer = user, space = 8 + 32 + 8, seeds = [b"member", name.as_bytes()], bump)]
+    pub member: Account<'info, Member>,
     pub system_program: Program<'info, System>,
 }
 
@@ -391,6 +425,8 @@ pub enum MyError {
     InvalidPayoutStatus,
     #[msg["A math error occurred"]]
     MathError,
+    #[msg("Pubkey already exist as member.")]
+    MemberAlreadyExists,
 }
 
 #[event]
@@ -400,15 +436,17 @@ pub struct BudgetUpdated {
     remaining_amount: u64,
 }
 
-// Define other events similarly
+#[event]
+pub struct OrganizationCreated {
+    owner: Pubkey,
+    name: String,
+}
 
-// #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
-// pub struct Member {
-//     // Define member structure here
-//     pub pubkey: Pubkey,
-//     pub role: Role,
-// }
-
+#[event]
+pub struct MemberAdded {
+    organization: Pubkey,
+    member: Pubkey,
+}
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
 pub enum Role {
     // Define roles
@@ -435,6 +473,7 @@ pub struct Member {
 #[account]
 pub struct Organization {
     pub owner: Pubkey,
+    pub name: String,
     pub members: Vec<Member>,
 }
 
