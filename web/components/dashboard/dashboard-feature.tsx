@@ -1,6 +1,8 @@
 'use client';
 
 import { AppHero } from '../ui/ui-layout';
+// import { Button } from '@nx-next-shadcn-ui-starter/ui-kit/ui';
+
 
 const links: { label: string; href: string }[] = [
   { label: 'Solana Docs', href: 'https://docs.solana.com/' },
