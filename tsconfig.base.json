@@ -16,6 +16,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./web/*"],
+      "@nx-next-shadcn-ui-starter/ui-kit/ui": ["libs/ui-kit/ui/src/index.ts"],
       "@org-buddy/anchor": ["anchor/src/index.ts"]
     }
   },
