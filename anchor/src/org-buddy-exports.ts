@@ -8,5 +8,5 @@ export { OrgBuddy, OrgBuddyIDL };
 
 // After updating your program ID (e.g. after running `anchor keys sync`) update the value below.
 export const programId = new PublicKey(
-  '78pb7tZ1xG5yimX9quKGpFTvpbTKCVZ2kQkBw39uoazR'
+  'E1uKTjuj6kyBW9cvjF1BabebZQwRGfxdRkh7n6XcvncV'
 );

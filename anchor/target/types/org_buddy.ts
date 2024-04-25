@@ -78,7 +78,6 @@ export type OrgBuddy = {
       accounts: [
         { name: 'organization'; isMut: true; isSigner: false },
         { name: 'user'; isMut: true; isSigner: true },
-        { name: 'member'; isMut: true; isSigner: false },
         { name: 'systemProgram'; isMut: false; isSigner: false }
       ];
       args: [{ name: 'name'; type: 'string' }];
@@ -87,7 +86,6 @@ export type OrgBuddy = {
       name: 'addMember';
       accounts: [
         { name: 'organization'; isMut: true; isSigner: false },
-        { name: 'member'; isMut: true; isSigner: false },
         { name: 'user'; isMut: true; isSigner: true },
         { name: 'systemProgram'; isMut: false; isSigner: false }
       ];
@@ -97,20 +95,15 @@ export type OrgBuddy = {
       name: 'updateMemberRole';
       accounts: [
         { name: 'organization'; isMut: true; isSigner: false },
-        { name: 'member'; isMut: true; isSigner: false },
         { name: 'user'; isMut: false; isSigner: true },
         { name: 'systemProgram'; isMut: false; isSigner: false }
       ];
-      args: [
-        { name: 'member'; type: 'publicKey' },
-        { name: 'role'; type: { defined: 'Role' } }
-      ];
+      args: [{ name: 'member'; type: 'publicKey' }];
     },
     {
       name: 'removeMember';
       accounts: [
         { name: 'organization'; isMut: true; isSigner: false },
-        { name: 'member'; isMut: true; isSigner: false },
         { name: 'user'; isMut: false; isSigner: true }
       ];
       args: [{ name: 'member'; type: 'publicKey' }];
@@ -131,23 +124,13 @@ export type OrgBuddy = {
       };
     },
     {
-      name: 'Member';
-      type: {
-        kind: 'struct';
-        fields: [
-          { name: 'pubkey'; type: 'publicKey' },
-          { name: 'role'; type: { defined: 'Role' } }
-        ];
-      };
-    },
-    {
       name: 'Organization';
       type: {
         kind: 'struct';
         fields: [
           { name: 'owner'; type: 'publicKey' },
           { name: 'name'; type: 'string' },
-          { name: 'members'; type: { vec: { defined: 'Member' } } }
+          { name: 'members'; type: { vec: 'publicKey' } }
         ];
       };
     },
@@ -164,10 +147,6 @@ export type OrgBuddy = {
     }
   ];
   types: [
-    {
-      name: 'Role';
-      type: { kind: 'enum'; variants: [{ name: 'Admin' }, { name: 'Member' }] };
-    },
     {
       name: 'PayoutStatus';
       type: {
@@ -313,7 +292,6 @@ export const IDL: OrgBuddy = {
       accounts: [
         { name: 'organization', isMut: true, isSigner: false },
         { name: 'user', isMut: true, isSigner: true },
-        { name: 'member', isMut: true, isSigner: false },
         { name: 'systemProgram', isMut: false, isSigner: false },
       ],
       args: [{ name: 'name', type: 'string' }],
@@ -322,7 +300,6 @@ export const IDL: OrgBuddy = {
       name: 'addMember',
       accounts: [
         { name: 'organization', isMut: true, isSigner: false },
-        { name: 'member', isMut: true, isSigner: false },
         { name: 'user', isMut: true, isSigner: true },
         { name: 'systemProgram', isMut: false, isSigner: false },
       ],
@@ -332,20 +309,15 @@ export const IDL: OrgBuddy = {
       name: 'updateMemberRole',
       accounts: [
         { name: 'organization', isMut: true, isSigner: false },
-        { name: 'member', isMut: true, isSigner: false },
         { name: 'user', isMut: false, isSigner: true },
         { name: 'systemProgram', isMut: false, isSigner: false },
       ],
-      args: [
-        { name: 'member', type: 'publicKey' },
-        { name: 'role', type: { defined: 'Role' } },
-      ],
+      args: [{ name: 'member', type: 'publicKey' }],
     },
     {
       name: 'removeMember',
       accounts: [
         { name: 'organization', isMut: true, isSigner: false },
-        { name: 'member', isMut: true, isSigner: false },
         { name: 'user', isMut: false, isSigner: true },
       ],
       args: [{ name: 'member', type: 'publicKey' }],
@@ -366,23 +338,13 @@ export const IDL: OrgBuddy = {
       },
     },
     {
-      name: 'Member',
-      type: {
-        kind: 'struct',
-        fields: [
-          { name: 'pubkey', type: 'publicKey' },
-          { name: 'role', type: { defined: 'Role' } },
-        ],
-      },
-    },
-    {
       name: 'Organization',
       type: {
         kind: 'struct',
         fields: [
           { name: 'owner', type: 'publicKey' },
           { name: 'name', type: 'string' },
-          { name: 'members', type: { vec: { defined: 'Member' } } },
+          { name: 'members', type: { vec: 'publicKey' } },
         ],
       },
     },
@@ -399,10 +361,6 @@ export const IDL: OrgBuddy = {
     },
   ],
   types: [
-    {
-      name: 'Role',
-      type: { kind: 'enum', variants: [{ name: 'Admin' }, { name: 'Member' }] },
-    },
     {
       name: 'PayoutStatus',
       type: {

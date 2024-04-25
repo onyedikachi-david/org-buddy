@@ -8,6 +8,8 @@ import { CardDescription, CardTitle, CardHeader, CardContent, Card, CardFooter }
 import { ResponsiveLine } from "@nivo/line"
 import { ResponsivePie } from "@nivo/pie"
 import { ResponsiveBar } from "@nivo/bar"
+import { JSX, ClassAttributes, HTMLAttributes } from "react";
+import { SVGProps } from "react";
 
 export default function OrgDashboard() {
   return (
@@ -335,7 +337,7 @@ export default function OrgDashboard() {
   )
 }
 
-function BarChart(props) {
+function BarChart(props: JSX.IntrinsicAttributes & ClassAttributes<HTMLDivElement> & HTMLAttributes<HTMLDivElement>) {
   return (
     <div {...props}>
       <ResponsiveBar
@@ -389,7 +391,7 @@ function BarChart(props) {
 }
 
 
-function BellIcon(props) {
+function BellIcon(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
@@ -410,7 +412,7 @@ function BellIcon(props) {
 }
 
 
-function CalendarClockIcon(props) {
+function CalendarClockIcon(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
@@ -435,7 +437,7 @@ function CalendarClockIcon(props) {
 }
 
 
-function CoinsIcon(props) {
+function CoinsIcon(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
@@ -458,7 +460,7 @@ function CoinsIcon(props) {
 }
 
 
-function DollarSignIcon(props) {
+function DollarSignIcon(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
@@ -479,7 +481,7 @@ function DollarSignIcon(props) {
 }
 
 
-function HomeIcon(props) {
+function HomeIcon(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
@@ -500,7 +502,7 @@ function HomeIcon(props) {
 }
 
 
-function LineChart(props) {
+function LineChart(props: JSX.IntrinsicAttributes & ClassAttributes<HTMLDivElement> & HTMLAttributes<HTMLDivElement>) {
   return (
     <div {...props}>
       <ResponsiveLine
@@ -574,7 +576,7 @@ function LineChart(props) {
 }
 
 
-function MountainIcon(props) {
+function MountainIcon(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
@@ -594,7 +596,7 @@ function MountainIcon(props) {
 }
 
 
-function PieChart(props) {
+function PieChart(props: JSX.IntrinsicAttributes & ClassAttributes<HTMLDivElement> & HTMLAttributes<HTMLDivElement>) {
   return (
     <div {...props}>
       <ResponsivePie
@@ -613,7 +615,7 @@ function PieChart(props) {
         borderWidth={1}
         borderColor={"#ffffff"}
         enableArcLinkLabels={false}
-        arcLabel={(d) => `${d.id}`}
+        arcLabel={(d: { id: any; }) => `${d.id}`}
         arcLabelsTextColor={"#ffffff"}
         arcLabelsRadiusOffset={0.65}
         colors={["#2563eb"]}
@@ -641,7 +643,7 @@ function PieChart(props) {
 }
 
 
-function SearchIcon(props) {
+function SearchIcon(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
@@ -662,7 +664,7 @@ function SearchIcon(props) {
 }
 
 
-function UsersIcon(props) {
+function UsersIcon(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
@@ -685,7 +687,7 @@ function UsersIcon(props) {
 }
 
 
-function WalletIcon(props) {
+function WalletIcon(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
@@ -706,42 +708,42 @@ function WalletIcon(props) {
   )
 }
 
-=== styles.css ===
+// === styles.css ===
 
-  body {
-  font - family: var(--font - rubik), sans - serif;
-}
+//   body {
+//   font - family: var(--font - rubik), sans - serif;
+// }
 
-h1, h2, h3, h4, h5, h6 {
-  font - family: var(--font - dm_serif_display), sans - serif;
-}
+// h1, h2, h3, h4, h5, h6 {
+//   font - family: var(--font - dm_serif_display), sans - serif;
+// }
 
-=== layout.jsx ===
+// === layout.jsx ===
 
 // This is the root layout component for your Next.js app.
 // Learn more: https://nextjs.org/docs/app/building-your-application/routing/pages-and-layouts#root-layout-required
 
-import { DM_Serif_Display } from 'next/font/google'
-import { Rubik } from 'next/font/google'
-import './styles.css'
+// import { DM_Serif_Display } from 'next/font/google'
+// import { Rubik } from 'next/font/google'
+// import './styles.css'
 
-const dm_serif_display = DM_Serif_Display({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-dm_serif_display',
-})
-const rubik = Rubik({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-rubik',
-})
+// const dm_serif_display = DM_Serif_Display({
+//   subsets: ['latin'],
+//   display: 'swap',
+//   variable: '--font-dm_serif_display',
+// })
+// const rubik = Rubik({
+//   subsets: ['latin'],
+//   display: 'swap',
+//   variable: '--font-rubik',
+// })
 
-export default function Layout({ children }) {
-  return (
-    <html lang="en">
-      <body className={dm_serif_display.variable + rubik.variable}>
-        {children}
-      </body>
-    </html>
-  )
-}
+// export default function Layout({ children }) {
+//   return (
+//     <html lang="en">
+//       <body className={dm_serif_display.variable + rubik.variable}>
+//         {children}
+//       </body>
+//     </html>
+//   )
+// }

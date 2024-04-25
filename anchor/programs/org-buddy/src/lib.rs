@@ -3,7 +3,7 @@
 use anchor_lang::prelude::*;
 use std::mem::size_of;
 
-declare_id!("78pb7tZ1xG5yimX9quKGpFTvpbTKCVZ2kQkBw39uoazR");
+declare_id!("E1uKTjuj6kyBW9cvjF1BabebZQwRGfxdRkh7n6XcvncV");
 
 // make organization a pda
 // use init_if_needed for organization pda and budget
@@ -209,7 +209,6 @@ pub mod finance_solana {
 
         organization.owner = *creator.key;
         organization.name = name;
-        organization.members = vec![];
 
         emit!(OrganizationCreated {
             owner: organization.owner,
@@ -227,19 +226,16 @@ pub mod finance_solana {
         require!(organization.owner == *user.key, MyError::Unauthorized);
 
         // Optionally, check for duplicate members or other business rules
-        if organization
-            .members
-            .iter()
-            .any(|m| m.pubkey == member_pubkey)
-        {
-            return err!(MyError::MemberAlreadyExists);
-        }
+        // if organization
+        //     .members
+        //     .iter()
+        //     .any(|m| m.pubkey == member_pubkey)
+        // {
+        //     return err!(MyError::MemberAlreadyExists);
+        // }
 
         // Add the new member to the organization
-        organization.members.push(Member {
-            pubkey: member_pubkey,
-            role: Role::Member, // Assuming a default role; adjust as necessary
-        });
+        organization.members.push(member_pubkey);
 
         // Optionally, emit an event here to log the addition of a new member
         emit!(MemberAdded {
@@ -250,11 +246,7 @@ pub mod finance_solana {
         Ok(())
     }
 
-    pub fn update_member_role(
-        ctx: Context<UpdateMemberRole>,
-        member: Pubkey,
-        role: Role,
-    ) -> Result<()> {
+    pub fn update_member_role(ctx: Context<UpdateMemberRole>, member: Pubkey) -> Result<()> {
         todo!()
     }
 
@@ -371,8 +363,6 @@ pub struct ExecutePayout<'info> {
 pub struct AddMember<'info> {
     #[account(mut, seeds = [b"organization", organization.owner.key().as_ref()], bump)]
     pub organization: Account<'info, Organization>,
-    #[account(mut, seeds = [b"member", organization.name.as_bytes()], bump)]
-    pub member: Account<'info, Member>,
     #[account(mut)]
     pub user: Signer<'info>,
     pub system_program: Program<'info, System>,
@@ -382,8 +372,6 @@ pub struct AddMember<'info> {
 pub struct UpdateMemberRole<'info> {
     #[account(mut, seeds = [b"organization", organization.owner.key().as_ref()], bump)]
     pub organization: Account<'info, Organization>,
-    #[account(mut,seeds = [b"member", organization.name.as_bytes()], bump)]
-    pub member: Account<'info, Member>,
     pub user: Signer<'info>,
     pub system_program: Program<'info, System>,
 }
@@ -392,8 +380,6 @@ pub struct UpdateMemberRole<'info> {
 pub struct RemoveMember<'info> {
     #[account(mut, seeds = [b"organization", organization.owner.key().as_ref()], bump)]
     pub organization: Account<'info, Organization>,
-    #[account(mut, seeds = [b"member", organization.name.as_bytes()], bump)]
-    pub member: Account<'info, Member>,
     pub user: Signer<'info>,
 }
 
@@ -404,8 +390,6 @@ pub struct CreateOrganization<'info> {
     pub organization: Account<'info, Organization>,
     #[account(mut)]
     pub user: Signer<'info>,
-    #[account(init, payer = user, space = 8 + 32 + 8, seeds = [b"member", name.as_bytes()], bump)]
-    pub member: Account<'info, Member>,
     pub system_program: Program<'info, System>,
 }
 
@@ -447,12 +431,12 @@ pub struct MemberAdded {
     organization: Pubkey,
     member: Pubkey,
 }
-#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
-pub enum Role {
-    // Define roles
-    Admin,
-    Member,
-}
+// #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+// pub enum Role {
+//     // Define roles
+//     Admin,
+//     Member,
+// }
 
 #[account]
 #[derive(InitSpace)]
@@ -464,17 +448,17 @@ pub struct Budget {
     pub bump: u8,
 }
 
-#[account]
-pub struct Member {
-    pub pubkey: Pubkey,
-    pub role: Role,
-}
+// #[account]
+// pub struct Member {
+//     pub pubkey: Pubkey,
+//     pub role: Role,
+// }
 
 #[account]
 pub struct Organization {
     pub owner: Pubkey,
     pub name: String,
-    pub members: Vec<Member>,
+    pub members: Vec<Pubkey>,
 }
 
 #[account]
